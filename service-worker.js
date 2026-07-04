@@ -1,0 +1,5 @@
+const CACHE_NAME='pixel-survival-modular-landscape-v1';
+const ASSETS=['./','./index.html','./style.css','./manifest.webmanifest','./core/engine.js','./core/render.js','./core/input.js','./core/gameLoop.js','./systems/player.js','./systems/world.js','./systems/inventory.js','./systems/combat.js','./systems/crafting.js','./systems/ai.js','./systems/building.js','./systems/farming.js','./systems/weather.js','./systems/save.js','./systems/audio.js','./ui/hud.js','./ui/menu.js','./ui/inventoryUI.js','./ui/craftingUI.js','./ui/mobileControls.js','./assets/favicon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/cover.png','./assets/sprites_placeholder.png','./assets/tileset_placeholder.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.map(k=>k!==CACHE_NAME?caches.delete(k):null))));self.clients.claim();});
+self.addEventListener('fetch',e=>{if(e.request.method==='GET')e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});

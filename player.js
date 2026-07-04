@@ -1,0 +1,28 @@
+(function(){
+'use strict'; const PS=window.PS,U=PS.Utils;
+class PlayerSystem{
+  constructor(engine){this.engine=engine;this.x=0;this.y=0;this.w=22;this.h=34;this.vx=0;this.vy=0;this.facing=1;this.onGround=false;this.spawn={x:0,y:0};this.stats={health:100,maxHealth:100,hunger:100,thirst:100,stamina:100,temperature:20,oxygen:100};this.xp=0;this.level=1;this.tier='stone age';this.achievements={};this.skills={mining:1,combat:1,crafting:1,survival:1};this.status={poison:0,burn:0,freeze:0,regen:0};this.anim='idle';this.attackTimer=0;this.combo=0;this.dodge=0;this.invuln=0;}
+  initSpawn(){const w=this.engine.systems.world;const tx=0,ty=w.surfaceHeight(tx)-2;this.x=tx*w.tile+16;this.y=ty*w.tile;this.spawn={x:this.x,y:this.y};}
+  update(dt){const input=this.engine.systems.input,world=this.engine.systems.world,inv=this.engine.systems.inventory,weather=this.engine.systems.weather;this.attackTimer=Math.max(0,this.attackTimer-dt);this.dodge=Math.max(0,this.dodge-dt);this.invuln=Math.max(0,this.invuln-dt);for(const k in this.status)this.status[k]=Math.max(0,this.status[k]-dt);
+    const weight=inv.weight(),weightSlow=U.clamp(1-(Math.max(0,weight-inv.maxWeight())*.012),.55,1);let speed=170*weightSlow;if(input.run&&this.stats.stamina>5){speed*=1.25;this.stats.stamina-=18*dt;}if(this.status.freeze)speed*=.55;if(weather.wind)Math.sign(weather.wind)!==Math.sign(input.moveX)&&(speed*=.92);
+    let mx=input.moveX;if(Math.abs(mx)>0.05){this.vx=U.lerp(this.vx,mx*speed,.18);this.facing=Math.sign(mx);this.anim=input.run?'run':'walk';}else{this.vx=U.lerp(this.vx,0,.20);this.anim='idle';}
+    if(input.jump&&this.onGround&&this.stats.stamina>8){this.vy=-470;this.onGround=false;this.stats.stamina-=8;this.engine.systems.audio?.play('jump');}
+    if(this.dodge>0){this.vx=this.facing*420;this.invuln=Math.max(this.invuln,.08);}
+    this.vy+=PS.Config.gravity*dt;this.moveAxis(this.vx*dt,0,world);this.moveAxis(0,this.vy*dt,world);this.stats.stamina=U.clamp(this.stats.stamina+22*dt,0,100);
+    const biome=world.biomeAt(Math.floor(this.x/world.tile));let tempTarget=20;if(biome==='desert')tempTarget=38;if(biome==='snow')tempTarget=-8;if(biome==='volcano')tempTarget=48;if(weather.type==='snow')tempTarget-=8;if(weather.type==='heatwave')tempTarget+=10;this.stats.temperature=U.lerp(this.stats.temperature,tempTarget,.012);
+    const inWater=world.tileAtWorld(this.x,this.y+this.h/2)===8;if(inWater)this.stats.oxygen=U.clamp(this.stats.oxygen-18*dt,0,100);else this.stats.oxygen=U.clamp(this.stats.oxygen+26*dt,0,100);
+    this.stats.hunger=U.clamp(this.stats.hunger-(.45+Math.abs(this.vx)/900)*dt,0,100);this.stats.thirst=U.clamp(this.stats.thirst-(.65+(biome==='desert'?1.2:0))*dt,0,100);if(weather.type==='heatwave')this.stats.thirst=U.clamp(this.stats.thirst-1.1*dt,0,100);
+    if(this.stats.hunger<=0||this.stats.thirst<=0||this.stats.oxygen<=0)this.damage(4*dt,'survival');if(this.status.poison)this.damage(3*dt,'poison');if(this.status.burn)this.damage(5*dt,'burn');if(this.status.regen)this.heal(4*dt);if(this.stats.health<=0)this.engine.die();}
+  moveAxis(dx,dy,world){if(dx!==0){this.x+=dx;if(this.collides(world)){this.x-=dx;this.vx=0;}}if(dy!==0){this.y+=dy;if(this.collides(world)){this.y-=dy;if(dy>0)this.onGround=true;this.vy=0;}else if(dy>0)this.onGround=false;}}
+  collides(world){const x1=this.x-this.w/2,x2=this.x+this.w/2,y1=this.y-this.h/2,y2=this.y+this.h/2;return world.isSolidAt(x1,y1)||world.isSolidAt(x2,y1)||world.isSolidAt(x1,y2)||world.isSolidAt(x2,y2);}
+  damage(amount,type='hit'){if(this.invuln>0)return;const inv=this.engine.systems.inventory;let armor=0;for(const s of Object.values(inv.equipment)){if(s){const it=PS.Items[s.id];armor+=it.armor||0;}}amount=Math.max(.2,amount*(1-armor));this.stats.health=U.clamp(this.stats.health-amount,0,this.stats.maxHealth);this.invuln=.45;this.engine.shake(.12);if(type==='poison')this.status.poison=Math.max(this.status.poison,4);this.engine.systems.audio?.play('hurt');}
+  heal(n){this.stats.health=U.clamp(this.stats.health+n,0,this.stats.maxHealth);}
+  unlockAchievement(id,name){if(this.achievements[id])return;this.achievements[id]=true;this.engine.toast(`🏆 Achievement: ${name}`,'#ffd166');}
+  refreshTier(){const old=this.tier;this.tier=this.level>=12?'mythic age':this.level>=8?'gold age':this.level>=4?'iron age':'stone age';if(old!==this.tier)this.engine.toast('Unlocked tier: '+this.tier,'#ffd166');}
+  addXP(n,skill='survival'){this.xp+=n;this.skills[skill]=(this.skills[skill]||1)+n*.002;if(this.skills[skill]>2)this.unlockAchievement('skill_'+skill,'Skilled '+skill);const need=this.level*40;if(this.xp>=need){this.xp-=need;this.level++;this.stats.maxHealth+=5;this.stats.health=this.stats.maxHealth;this.refreshTier();this.unlockAchievement('level_'+this.level,'Reached Level '+this.level);this.engine.toast(`Level Up! Level ${this.level}`,'#ffd166');this.engine.systems.audio?.play('level');}}
+  respawn(){const inv=this.engine.systems.inventory;const drops=inv.dropOnDeath();this.engine.systems.world.spawnDrops(drops,this.x,this.y);this.stats.health=this.stats.maxHealth;this.stats.hunger=80;this.stats.thirst=80;this.stats.oxygen=100;this.x=this.spawn.x;this.y=this.spawn.y;this.vx=this.vy=0;this.engine.setMode('game');document.getElementById('deathScreen').classList.add('hidden');this.engine.toast(`${drops.length} item stacks dropped on death`,'#f05265');}
+  serialize(){return{x:this.x,y:this.y,spawn:this.spawn,stats:this.stats,xp:this.xp,level:this.level,tier:this.tier,achievements:this.achievements,skills:this.skills,status:this.status};}
+  deserialize(d){if(!d)return;Object.assign(this,d);}
+}
+PS.PlayerSystem=PlayerSystem;
+})();

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Pixel Survival" />
+  <meta name="screen-orientation" content="landscape" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Pixel Survival: Modular Landscape Edition</title>
+</head>
+<body>
+  <canvas id="gameCanvas" aria-label="Pixel Survival Game Canvas"></canvas>
+
+  <div id="rotatePrompt">
+    <div class="rotateBox">
+      <div class="rotateIcon">📱↔️</div>
+      <h2>Bitte im Querformat spielen</h2>
+      <p>Diese Version ist für Landscape optimiert. In Web2App zusätzlich Orientation = Landscape setzen.</p>
+    </div>
+  </div>
+
+  <div id="splashScreen" class="screen active">
+    <div id="splashParticles"></div>
+    <div class="splashLogo">MADE BY WCPO</div>
+    <div class="splashSub">Pixel Survival Engine</div>
+  </div>
+
+  <div id="mainMenu" class="screen hidden">
+    <div class="menuCard">
+      <h1>PIXEL SURVIVAL</h1>
+      <h3>MODULAR LANDSCAPE EDITION</h3>
+      <button id="btnStart" class="primary">Start Game</button>
+      <button id="btnContinue">Continue</button>
+      <button id="btnSettings">Settings</button>
+      <button id="btnControls">Controls Tutorial</button>
+      <button id="btnCredits">Credits</button>
+    </div>
+  </div>
+
+  <div id="hud" class="hud hidden">
+    <div class="hudTop">
+      <b>🎮 Pixel Survival</b>
+      <span id="fpsBadge">60 FPS</span>
+    </div>
+    <div class="stat"><span>❤️ HP</span><i><b id="hpBar"></b></i><em id="hpText">100</em></div>
+    <div class="stat"><span>🍖 Hunger</span><i><b id="hungerBar"></b></i><em id="hungerText">100</em></div>
+    <div class="stat"><span>💧 Durst</span><i><b id="thirstBar"></b></i><em id="thirstText">100</em></div>
+    <div class="stat"><span>⚡ Stamina</span><i><b id="staminaBar"></b></i><em id="staminaText">100</em></div>
+    <div class="stat"><span>🌡️ Temp</span><i><b id="tempBar"></b></i><em id="tempText">20</em></div>
+    <div class="stat"><span>🫧 Oxygen</span><i><b id="oxygenBar"></b></i><em id="oxygenText">100</em></div>
+    <div class="hudInfo">
+      <span>Level <b id="levelText">1</b></span>
+      <span>Biome <b id="biomeText">Grass</b></span>
+      <span>Layer <b id="layerText">Surface</b></span>
+      <span>Weather <b id="weatherText">Clear</b></span>
+      <span>Time <b id="timeText">06:00</b></span>
+      <span>Weight <b id="weightText">0</b></span>
+    </div>
+    <div id="hotbar" class="hotbar"></div>
+  </div>
+
+  <div id="topButtons" class="topButtons hidden">
+    <button id="openInv">🎒 Inventory</button>
+    <button id="openCraft">🔨 Craft</button>
+    <button id="openBuild">🏗️ Build</button>
+    <button id="openMap">🗺️ Map</button>
+    <button id="openSettingsInGame">⚙️</button>
+  </div>
+
+  <div id="panel" class="panel hidden"></div>
+  <div id="toastLog" class="toastLog"></div>
+  <div id="mobileControls" class="mobileControls hidden"></div>
+
+  <div id="deathScreen" class="screen hidden">
+    <div class="menuCard deathCard">
+      <h1>💀 You Died</h1>
+      <p>Ein Teil deiner Items wurde gedroppt. Respawne am Spawnpunkt oder lade einen Slot.</p>
+      <button id="btnRespawn" class="primary">Respawn</button>
+      <button id="btnLoadDeath">Load Save</button>
+      <button id="btnMenuDeath">Main Menu</button>
+    </div>
+  </div>
+
+  <script src="core/engine.js"></script>
+  <script src="systems/inventory.js"></script>
+  <script src="systems/world.js"></script>
+  <script src="systems/player.js"></script>
+  <script src="systems/combat.js"></script>
+  <script src="systems/crafting.js"></script>
+  <script src="systems/ai.js"></script>
+  <script src="systems/building.js"></script>
+  <script src="systems/farming.js"></script>
+  <script src="systems/weather.js"></script>
+  <script src="systems/save.js"></script>
+  <script src="systems/audio.js"></script>
+  <script src="core/input.js"></script>
+  <script src="core/render.js"></script>
+  <script src="ui/hud.js"></script>
+  <script src="ui/menu.js"></script>
+  <script src="ui/inventoryUI.js"></script>
+  <script src="ui/craftingUI.js"></script>
+  <script src="ui/mobileControls.js"></script>
+  <script src="core/gameLoop.js"></script>
+</body>
+</html>
